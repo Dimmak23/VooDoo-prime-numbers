@@ -1,7 +1,7 @@
 /*
 This code is solution for "Voodoo Primes challenge".
 _______________________________________________________________________________
-Voodoo Primes
+Voodoo Primes.
 
 A Voodoo prime is a prime number whose reciprocal (in decimal) has the same
 number in its digits. For example, 7 is a voodoo prime because its reciprocal
@@ -22,14 +22,30 @@ _______________________________________________________________________________
 #include <iostream>
 #include <vector>
 #include <string>
-#include <math.h> 
+#include <sstream> 
 #include <time.h>
+#include <math.h>
 
-// template function for simple message output
-template <class messageType>
-void pOL(messageType message){
-	std::cout << message;
+// 
+template <typename T>
+void pOL(T word){
+	std::cout << word;
 }
+// 
+template <typename T, typename... Args>
+void pOL(T first, Args... args){
+	std::cout << first;
+	pOL(args...);
+}
+//
+template <typename T> inline
+std::string tostring(T decimal){
+    std::ostringstream os;
+    os << decimal;
+    return os.str();
+}
+//
+int accurancy = 2500;
 
 /*
 Base class "storage" has private: messages for display, and private container
@@ -49,14 +65,11 @@ class storage{
     private:
     // messages represent as strings, they kept private because doesn't uses
     // in other parts of programm
-	std::string modeHeader = "\nEnter number or range: ";
+	std::string modeHeader = "\nEnter number or range here: ";
     std::string incorrect = "\nThis input is incorrect.\n";
     std::string comeAgain = "\nThat's all for now, run again.\n";
-    
     //
-	std::string response;
 	std::string answer;
-
 
 	// Main program need this containers and methods
 	public:
@@ -71,12 +84,6 @@ class storage{
 
 	// Method that show to user options of the program
 	void openDialog(){
-		// Move to dialog header additional messages
-		//modeHeader += "\n\n(s/S) - for varifing single number";
-		//modeHeader += " being lab,";
-		//modeHeader += "\n(r/R) - for showing all lab numbers";
-		//modeHeader += " in the given range.\n\n";
-		// output message for user
 		pOL(modeHeader);
 		// read mode from user
 		std::getline (std::cin, answer);
@@ -86,44 +93,34 @@ class storage{
 	void validateDialog(){
 		int i = 0;
 		int j = 0;
-		mode = true;
-		approved = true;
-
+		//
 		while ( answer[j] != '\0' ){
-			
 			// increment when find every space
-			if ( (unsigned long long int)answer[j] == 32 ){
-				mode = false;
+			if ((int)answer[j]==32){
+				mode=false;
 				i++;
 			}
-			
 			// more than 1 space
-			if (i > 1) approved = false;
-
+			if (i > 1) approved=false;
+			//
 			if (i == 0)
-				if ( ( (unsigned long long int)answer[j] >= 48 ) && ( (unsigned long long int)answer[j] <= 57 ) )
-					number = number*10 + ((unsigned long long int)answer[j]-48);
-
+				if (((int)answer[j]>=48)
+				    && ((int)answer[j]<=57))
+					number = number*10+((int)answer[j]-48);
+				else if ((int)answer[j]!=32) approved=false;
+			//
 			if (i == 1)
-				if ( ( (unsigned long long int)answer[j] >= 48 ) && ( (unsigned long long int)answer[j] <= 57 ) ){
-					rRange = rRange*10 + ((unsigned long long int)answer[j]-48);
-				}
-
+				if (((int)answer[j]>=48)
+				    && ((int)answer[j]<=57))
+					rRange = rRange*10+((int)answer[j]-48);
+				else if ((int)answer[j]!=32) approved=false;
+			// jump to next character
 			j++;
 		}
 		// Immidiately send error message in case wrong input
 		if (!approved) pOL(incorrect);
 	}
 	
-	// Prepared virtual empty method for collecting number for research
-	virtual void setNumber(unsigned long long int x){}
-	// Prepared virtual empty method for collecting range for research
-	virtual void setRange(unsigned long long int x, unsigned long long int y){}
-	// Virtual empty method for sening result message if base class pointer
-	// will initilize it - because of keyword "virtual" derrived class overload
-	// method closeDialog() will be used	
-	virtual void closeDialog(){}
-
 	// Destructor simply send message to user asking run program again 
 	~storage(){
 		pOL(comeAgain);
@@ -134,7 +131,7 @@ class storage{
 Derrived class numberResearcher contain:
 private messages for user, container for collecting number;
 
-protected method labCheck() does actual research of single number;
+protected ;
 
 public methods such as getNumber() for collecting number, closeDialog() for
 sending result to user and bunch of empty methods openDialog() and
@@ -152,61 +149,54 @@ class numberResearcher : public storage
     std::string voodoo = "\nYou enter a voodoo number.\n";
     std::string notV = "\nYou enter just prime, not voodoo.\n";
     std::string notPrime = "\nYou enter not a prime number.\n";
+    std::string p1 = "\nCalculating prime divisors for given";
 	
 	// integer container for collected number from user
 	unsigned long long int number;
-    //
+	//
     std::vector<unsigned long long int> pVec;
     //
     clock_t time_new;
     //
     clock_t start_operate;
-	// bool container, true - time error, false - everything fine
-	bool time_failure = false;
 
 	// research method with bool return shared with range research class
 	protected:
+	//
+	std::string timeCalc = "\nTime spend on calculations: ";
+	std::string timeSec = " seconds.\n";
+    std::string p2 = " number cause time limit failure.\n";
+    std::string primeLimit = p1 + p2;
+	// bool container, true - time error, false - everything fine
+	bool time_p_failure;
+
 	// method recieve number for research and return "true" - if number lab
 	void getPrimes(unsigned long long int &point){
-
-		// temporary container
-		unsigned long long int y = point/11;
-		// first number in the container
+		// firsts numbers in the prime container
 		pVec.push_back(2);
-		pVec.push_back(3);
-		pVec.push_back(5);
-		pVec.push_back(7);
-		pVec.push_back(11);
-
+		//
 		start_operate = clock();
-
 		// calculate prime numbers with odd divisors
-		for (unsigned long long int i = 11; (( i <= y ) && !time_failure ); ){
-
+		for (unsigned long long int i = 3; (( i*i <= point ) && !time_p_failure ); ){
+			//
 			bool result  = true;
-
 			// first divise number with prime that alreay in the list
 			for (std::vector<unsigned long long int>::iterator it = pVec.begin();
-			     ( ( it != pVec.end() ) && ( *it <= (i/2) ) && result ); it++){
+			     ( ( it != pVec.end() ) && ( (*it)*(*it) <= i ) && result ); it++){
 			     		// if something left from division this not prime
 			     		if ( !( i % (*it) ) ) result = false;
 			}
-			
-			// then find divisors from other odd numbers
-			for (unsigned long long int j = pVec.back(); ( ( j <= (1+i/2) ) && result ); ){
-				// if something left from division this not prime
-				if ( !( i % j ) ) result = false;
-				// to the next odd number
-				j += 2;
-			}
+
 			// puch to vector only primes
 			if ( result ) pVec.push_back(i);
-
+			//
 			time_new = clock() - start_operate;
-			if ( time_new*1.0/CLOCKS_PER_SEC > 6 ){
-				point = i;
-				time_failure = true;		
+			//
+			if ( time_new*1.0/CLOCKS_PER_SEC > 1 ){
+				point = i*i;
+				time_p_failure = true;		
 			}
+			//
 			i += 2;
 		}
 	}
@@ -220,17 +210,19 @@ class numberResearcher : public storage
 			if (x == (*it)) return true;
 			if ( ( x > (*it) ) && !(x % (*it)) ) return false;
 		}
+		//
 	    return true;
 	}
-
-	//
+	
+	/*
 	bool checkVoodoo(unsigned long long int a){
-		int accurancy = 15;
 		//
 		int chk = 0;
 		//
+		int count = 0;
+		//
 		unsigned long long int c = a;
-		
+		//
 		while (c > 0){
 			chk++;
 			c /= 10;
@@ -238,46 +230,87 @@ class numberResearcher : public storage
 		//
 		chk = pow(10, chk);
 		//
-		for ( double b = 1/(double)a; accurancy > 0; accurancy--){
-
-			if ( a == (unsigned long long int)(chk*b) )
-			    return true; // check group of digits
-			
-
-			b = 10*b - (unsigned long long int)(10*b);//cut one digit
+		for ( double b = 1/(double)a; count < accurancy; count++){
+			// check group of digits
+			if ( a == (unsigned long long int)(chk*b) ) return true;
+			// cut one digit
+			b = 10*b - (unsigned long long int)(10*b);
 		}
-
+		//
 		return false;
 	}
+	*/
+
+	//
+	bool checkVoodoo(unsigned long long int input){
+		//
+	    int dividend = 1;
+	    //
+	    int count = 0;
+	    //
+	    int digits = 0;
+	    //
+		unsigned long long int temp_number = input;
+	    //
+	    std::string ans;
+		//
+	    std::string temp_string;
+	    //
+	    std::string initial = tostring(input);
+
+	    while (temp_number > 0){
+			digits++;
+			temp_number /= 10;
+		}
+
+	    ans += tostring(dividend/input);
+		count = ans.size();
+	    ans += '.';
+
+	    while ( count < accurancy ){
+	    	
+			dividend = (dividend % input)*10;
+			temp_string = tostring(dividend/input);
+			ans += temp_string;
+			count += temp_string.size();
+
+	        if ( ans.find(initial) != std::string::npos ) return true;
+			
+			if ( (count/(digits) > 1 ) )
+				ans.erase(ans.begin(),ans.end()-digits);
+	    }
+	    return false;
+	}
+
 
 	// Main program need this methods
 	public:
-	// Empty method for calling bace class openDialog()
-	void openDialog(){}
-	// Empty method for calling bace class validateInput()
-	void validateDialog(){}
 	// Method collect number from user
 	void setNumber(unsigned long long int x){
-		// Send simple message to user
-		//pOL(enterNumber);
-		//std::cin >> number;
 		number = x;
 	}
 
-	void operate(){}
-
-	// Prepared virtual empty method for collecting range for research
-	virtual void setRange(){}
 	// Method sends result to user
-	void closeDialog(){
+	void closeDialog(clock_t start_calc){
 		//
 		getPrimes(number);
 		//
-		if (checkPrime(number)){
-			if (checkVoodoo(number)) pOL(voodoo);
-			else pOL(notV);
+		if (time_p_failure) pOL(primeLimit);
+		else {
+			//
+			if (checkPrime(number)){
+				//
+				if (checkVoodoo(number)) pOL(voodoo);
+				//
+				else pOL(notV);
+			}
+			//
+			else pOL(notPrime);
 		}
-		else pOL(notPrime);
+
+		time_new = clock() - start_calc;
+			
+		pOL(timeCalc,time_new*1.0/CLOCKS_PER_SEC,timeSec);
 	}
 };
 
@@ -303,88 +336,95 @@ class rangeResearcher : public numberResearcher
     std::string enterLrange = "\nEnter start number in the range: ";
     std::string enterRrange = "\nEnter end number in the range: ";
     std::string voodooRange = "\nAll voodoo prime numbers in the given range [";
+    std::string timeLimit = "\nResearch for given range produce time limit failure.";
+    std::string voodooCorre = "\n\nAll voodoo prime numbers in the corrected range [";
     std::string back = "] are:\n\n[\n";
-    std::string notVRange = "\nNot a single voodoo prime in the given range((\n";
+    std::string notVRange = "\nNot a single voodoo prime in the given range: ";
+    std::string voodooQun = "].\n\nQuantity of voodoo prime numbers: ";
+    std::string q1 = "\nCalculating prime divisors for given";
+    std::string p2 = " range cause time limit failure.\n";
+    std::string primeLimit = q1 + p2;
 
 	// integer container for begin of range
 	unsigned long long int lRange;
 	// integer container for end of range
 	unsigned long long int rRange;
 	// integer vector container for all lab numbers in the range
-	std::vector<int> voodoo_primes;
+	std::vector<unsigned long long int> voodoo_primes;
     //
     clock_t time_new;
     //
     clock_t start_operate;
 	// bool container, true - time error, false - everything fine
-	bool time_failure = false;
+	bool time_failure;
 
 	// Method called labCheck() and keep lab number
 	void operate(unsigned long long int start, unsigned long long int &end){
 		//
 		getPrimes(end);
 		//
+		if (start == 1) start++;
+		//
 		start_operate = clock();
+		//
 		for(unsigned long long int next = start; ( (next <= end) && !time_failure ); next++){
+			//
 			time_new = clock() - start_operate;
-			if ( time_new*1.0/CLOCKS_PER_SEC > 1 ){
+			//
+			if ( time_new*1.0/CLOCKS_PER_SEC > 60 ){
+				//
 				end = next-1;
-				time_failure = true;		
+				time_failure = true;	
 			}
-			if ( checkVoodoo(next) && checkPrime(next) )
+
+			if ( checkPrime(next) && checkVoodoo(next) )
 				voodoo_primes.push_back(next);
 		}
 	}
 
 	// Main program need this methods
 	public:
-	// Empty method for calling bace class openDialog()
-	void openDialog(){}
-	// Empty method for calling bace class validateInput()
-	void validateDialog(){}
 	// Method collect range from user
 	void setRange(unsigned long long int x, unsigned long long int y){
-		//pOL(enterLrange);
-		//std::cin >> lRange;
-		//pOL(enterRrange);
-		//std::cin >> rRange;
 		lRange = x;
 		rRange = y;
 	}
 	// Method sends result to user
-	void closeDialog(){
+	void closeDialog(clock_t start_calc){
 		// temporary integer container
 		int i = 0;
 		// research in the range starts here
 		operate(lRange, rRange);
 		// send empty result vector to user
 		if (voodoo_primes.empty()){
-			pOL(notVRange);
-			pOL(lRange);
-			pOL(',');
-			pOL(' ');
-			pOL(rRange);
+			pOL(notVRange,'[',lRange,", ",rRange,"].\n");
 		}
 		else {
-			// send find any lab number message to user
-			pOL(voodooRange);
-			pOL(lRange);
-			pOL(',');
-			pOL(' ');
-			pOL(rRange);
-			pOL(back);
+			
+			if (time_p_failure) pOL(primeLimit);
+			
+			if (time_failure) pOL(timeLimit);
+			
+			if (time_p_failure || time_failure)
+				pOL(voodooCorre, lRange, ", ", rRange, back);
+			else pOL(voodooRange, lRange, ", ", rRange, back);
 			// printing by vector iterator in the for-loop
-			for (std::vector<int>::iterator it = voodoo_primes.begin();
-			     it!=voodoo_primes.end(); it++){
-				pOL(*it);
-				pOL('\t');
-				if(++i==6){
+			for (std::vector<unsigned long long int>::iterator
+			     it = voodoo_primes.begin(); it!=voodoo_primes.end();
+			     it++){
+				pOL(*it, '\t');
+				if(++i==7){
 					pOL('\n');
 					i=0;
 				}
 			}
 			if (i) pOL('\n');
-			pOL("].\n");
+			
+			pOL(voodooQun, voodoo_primes.size(), ".\n");
+
+			time_new = clock() - start_calc;
+
+			pOL(timeCalc,time_new*1.0/CLOCKS_PER_SEC,timeSec);
 		}
 	}
 };
@@ -393,7 +433,7 @@ class rangeResearcher : public numberResearcher
 int main() {
 
 	// declaring clock variable
-	clock_t t;
+	clock_t calc_t;
 	// Initiliazing pointer to base class
 	storage *entry = new storage;
 	// Initiliazing dialog with user
@@ -405,44 +445,30 @@ int main() {
 	if ( (entry -> approved) && (entry -> mode) )
 	{
 		// Initiliazing pointer to numberResearcher class
-		storage *check = new numberResearcher;
-		//
-		unsigned long long int x = entry -> number;
+		numberResearcher *check = new numberResearcher;
 		// Initiliazing collecting number from user 
-		check -> setNumber(x);
+		check -> setNumber(entry -> number);
 		// start clock
-		t = clock();
+		calc_t = clock();
 		// Closing dialog with user 
-		check -> closeDialog();
+		check -> closeDialog(calc_t);
 	}
 
 	// range of the numbers mode
 	if ( (entry -> approved) && !(entry -> mode) )
 	{
 		// Initiliazing pointer to rangeResearcher class
-		storage *check = new rangeResearcher;
-		//
-		unsigned long long int x = entry -> number;
-		//
-		unsigned long long int y = entry -> rRange;
+		rangeResearcher *check = new rangeResearcher;
 		// Initiliazing collecting range from user
-		check -> setRange(x, y);
+		check -> setRange(entry -> number, entry -> rRange);
 		// start clock
-		t = clock();
+		calc_t = clock();
 		// Closing dialog with user 
-		check -> closeDialog();
+		check -> closeDialog(calc_t);
 	}
-
+	
 	// deleting base class pointer
 	delete entry;
-
-	// getting time mesuare
-	t = clock() - t;
-
-	// send elapsed time for calculating to user
-	pOL("\nTime spend: ");
-	pOL(t*1.0/CLOCKS_PER_SEC);
-	pOL(" seconds.\n");
 
     return 0;
 }
