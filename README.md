@@ -14,3 +14,5 @@ Output: false (1/11=0.0909090909 doesn't contain 11)
 Write a program to check if the user input is a Voodoo prime or not.
 
 Bonus: Print all the Voodoo primes in a given range.
+
+Code output numbers with accurancy up to 2500 digits.
