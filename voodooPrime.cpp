@@ -3,7 +3,6 @@
 #include <string>
 #include <sstream> 
 #include <time.h>
-//#include <math.h>
 
 template <typename T>
 void pOL(T word){
@@ -132,33 +131,6 @@ class numberResearcher : public storage {
 	    return true;
 	}
 	
-	/*
-	bool checkVoodoo(unsigned long long int a){
-		//
-		int chk = 0;
-		//
-		int count = 0;
-		//
-		unsigned long long int c = a;
-		//
-		while (c > 0){
-			chk++;
-			c /= 10;
-		}
-		//
-		chk = pow(10, chk);
-		//
-		for ( double b = 1/(double)a; count < accurancy; count++){
-			// check group of digits
-			if ( a == (unsigned long long int)(chk*b) ) return true;
-			// cut one digit
-			b = 10*b - (unsigned long long int)(10*b);
-		}
-		//
-		return false;
-	}
-	*/
-
 	bool checkVoodoo(unsigned long long int input){
 	    int dividend = 1;
 	    int count = 0;
